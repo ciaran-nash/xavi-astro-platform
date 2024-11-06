@@ -1,0 +1,15 @@
+---
+const { events } = Astro.props;
+---
+
+<ul class="space-y-4">
+    {
+        events.map((event) => (
+            <li class="border-l-2 border-gray-200 pl-4">
+                <div class="text-sm text-gray-500">{event.date}</div>
+                <div class="font-bold">{event.title}</div>
+                <p>{event.description}</p>
+            </li>
+        ))
+    }
+</ul>

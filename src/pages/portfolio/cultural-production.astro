@@ -1,0 +1,19 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Grid from '../../components/GridDisplay.astro';
+import Timeline from '../../components/Timeline.astro';
+
+// Fetch or import data for this category
+const projects = [
+    { title: 'Project 1', image: '/images/project1.jpg', description: 'Description 1' }
+    // Add more projects
+];
+---
+
+<Layout title="Cultural Production">
+    <main>
+        <h1>Cultural Production</h1>
+        <p>Short text about cultural production work.</p>
+        <Grid items={projects} />
+    </main>
+</Layout>

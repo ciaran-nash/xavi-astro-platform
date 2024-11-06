@@ -11,6 +11,6 @@ export default defineConfig({
             applyBaseStyles: false
         })
     ],
-    output: 'hybrid',
+    output: 'server', // Changed from 'hybrid' to 'server'
     adapter: netlify()
 });

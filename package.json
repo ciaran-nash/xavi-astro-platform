@@ -10,9 +10,9 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/netlify": "^5.2.0",
-    "@astrojs/react": "^3.3.0",
-    "@astrojs/tailwind": "^5.1.0",
+    "@astrojs/netlify": "^5.5.4",
+    "@astrojs/react": "^3.6.2",
+    "@astrojs/tailwind": "^5.1.2",
     "@fontsource/inter": "^5.0.18",
     "@netlify/blobs": "^8.0.0",
     "@netlify/functions": "^2.8.1",
@@ -21,7 +21,7 @@
     "@sanity/image-url": "^1.0.2",
     "@types/react": "^18.2.79",
     "@types/react-dom": "^18.2.25",
-    "astro": "^4.13.1",
+    "astro": "^4.16.9",
     "blobshape": "^1.0.0",
     "glob": "^10.4.1",
     "marked": "^13.0.0",
