@@ -1,0 +1,23 @@
+---
+import client, { urlFor } from '../../lib/sanityClient';
+import Layout from '../../layouts/Layout.astro';
+import PageHeader from '../../components/Header.astro';
+import TimelineDisplay from '../../components/TimelineDisplay.astro';
+
+// Adjust the category name for each page
+const category = "Published Writing";
+
+const timelineItems = await client.fetch(`*[_type == "portfolio" && category == $category]{
+  title, date, description, externalLink
+} | order(date desc)`, { category });
+
+const description = await client.fetch(`*[_type == "category" && name == $category][0].description`, { category });
+---
+
+<Layout title={`${category} - Portfolio`}>
+  <PageHeader title={category} />
+  <div class="container mx-auto px-4 py-8">
+    {description && <p class="mb-8">{description}</p>}
+    <TimelineDisplay items={timelineItems} />
+  </div>
+</Layout>

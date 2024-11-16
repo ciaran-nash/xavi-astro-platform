@@ -1,0 +1,30 @@
+---
+export interface TimelineItem {
+  title: string;
+  date: string;
+  description?: string;
+  externalLink?: string;
+}
+
+interface Props {
+  items: TimelineItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<ul class="space-y-4">
+  {items.map((item) => (
+    <li class="border-l-2 border-gray-200 pl-4 py-2">
+      <div class="text-sm text-gray-500">{new Date(item.date).toLocaleDateString()}</div>
+      <h3 class="text-lg font-semibold">
+        {item.externalLink ? (
+          <a href={item.externalLink} target="_blank" rel="noopener noreferrer">{item.title}</a>
+        ) : (
+          item.title
+        )}
+      </h3>
+      {item.description && <p class="mt-1">{item.description}</p>}
+    </li>
+  ))}
+</ul>

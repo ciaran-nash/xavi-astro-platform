@@ -1,20 +1,62 @@
 ---
+import client, { urlFor } from '../../lib/sanityClient';
 import Layout from '../../layouts/Layout.astro';
+import PageHeader from '../../components/Header.astro';
 import PortfolioGrid from '../../components/PortfolioGrid.astro';
 
-const categories = [
-    { title: 'Performance Work', slug: 'performance-work', image: '/images/performance.jpg' },
-    { title: 'Pottery / Clay Work', slug: 'pottery-clay-work', image: '/images/pottery.jpg' },
-    { title: 'Curation', slug: 'curation', image: '/images/curation.jpg' },
-    { title: 'Editorial', slug: 'editorial', image: '/images/editorial.jpg' },
-    { title: 'Published Writing', slug: 'published-writings', image: '/images/writing.jpg' },
-    { title: 'Cultural Production', slug: 'cultural-production', image: '/images/cultural.jpg' }
+interface PortfolioItem {
+    title: string;
+    slug: { current: string };
+    image: string;
+    category: string;
+}
+
+interface PortfolioCategory {
+    title: string;
+    slug: string;
+}
+
+const portfolioCategories: PortfolioCategory[] = [
+    { title: 'Performance Work', slug: 'performance-work' },
+    { title: 'Pottery / Clay Work', slug: 'pottery' },
+    { title: 'Curation', slug: 'curation' },
+    { title: 'Editorial', slug: 'editorial' },
+    { title: 'Published Writing', slug: 'published-writing' },
+    { title: 'Cultural Production', slug: 'cultural-production' }
 ];
+
+// Fetch a sample item from each category for the main grid
+const portfolioItems = await client.fetch<PortfolioItem[]>(`*[_type == "portfolio"] {
+  title, 
+  slug, 
+  "image": mainImage.asset->url, 
+  category
+} | order(category) [0...6]`);
+
+// Transform the items to ensure the image URL is complete and slug is a string
+const transformedItems = portfolioItems.map((item) => ({
+    ...item,
+    image: urlFor(item.image).url(),
+    slug: item.slug.current
+}));
 ---
 
 <Layout title="Portfolio">
-    <main>
-        <h1>Portfolio</h1>
-        <p>Welcome to my portfolio. Explore my work across various categories.</p>
-    </main></Layout
->
+    <PageHeader title="Our Portfolio" />
+    <div class="container mx-auto px-4 py-8">
+        <PortfolioGrid items={transformedItems} />
+        <nav class="mt-8">
+            <ul class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {
+                    portfolioCategories.map((category) => (
+                        <li>
+                            <a href={`/portfolio/${category.slug}`} class="block p-4 bg-gray-100 hover:bg-gray-200 rounded">
+                                {category.title}
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </nav>
+    </div>
+</Layout>

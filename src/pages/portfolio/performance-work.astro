@@ -1,0 +1,26 @@
+---
+import client, { urlFor } from '../../lib/sanityClient';
+import Layout from '../../layouts/Layout.astro';
+import PageHeader from '../../components/Header.astro';
+import PortfolioGrid from '../../components/PortfolioGrid.astro';
+
+// Adjust the category name for each page
+const category = 'Performance Work';
+
+const portfolioItems = await client.fetch(
+    `*[_type == "portfolio" && category == $category]{
+  title, slug, "image": mainImage.asset->url
+}`,
+    { category }
+);
+
+const description = await client.fetch(`*[_type == "category" && name == $category][0].description`, { category });
+---
+
+<Layout title={`${category} - Portfolio`}>
+    <PageHeader title={category} />
+    <div class="container mx-auto px-4 py-8">
+        {description && <p class="mb-8">{description}</p>}
+        <PortfolioGrid items={portfolioItems} />
+    </div>
+</Layout>
