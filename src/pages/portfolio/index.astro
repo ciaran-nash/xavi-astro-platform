@@ -1,20 +1,9 @@
 ---
-import client, { urlFor } from '../../lib/sanityClient';
+import client from '../../lib/sanityClient';
 import Layout from '../../layouts/Layout.astro';
-import PageHeader from '../../components/Header.astro';
 import PortfolioGrid from '../../components/PortfolioGrid.astro';
-
-interface PortfolioItem {
-    title: string;
-    slug: { current: string };
-    image: string;
-    category: string;
-}
-
-interface PortfolioCategory {
-    title: string;
-    slug: string;
-}
+import CategoryFilterLinks from '../../components/CategoryFilterLinks.astro';
+import type { PortfolioItem, PortfolioCategory } from '../../types/portfolio-types';
 
 const portfolioCategories: PortfolioCategory[] = [
     { title: 'Performance Work', slug: 'performance-work' },
@@ -25,37 +14,103 @@ const portfolioCategories: PortfolioCategory[] = [
     { title: 'Cultural Production', slug: 'cultural-production' }
 ];
 
-// Fetch a sample item from each category for the main grid
-const portfolioItems = await client.fetch<PortfolioItem[]>(`*[_type == "portfolio"] {
-  title, 
-  slug, 
-  "image": mainImage.asset->url, 
-  category
-} | order(category) [0...6]`);
+let portfolioItems: PortfolioItem[] = [];
+let error: string | null = null;
+let isLoading = true;
 
-// Transform the items to ensure the image URL is complete and slug is a string
-const transformedItems = portfolioItems.map((item) => ({
-    ...item,
-    image: urlFor(item.image).url(),
-    slug: item.slug.current
-}));
+try {
+    // Fetch all portfolio items
+    portfolioItems = await client.fetch<PortfolioItem[]>(`*[_type == "portfolio"] {
+        _id,
+        title,
+        "slug": slug.current,
+        "image": mainImage.asset->url,
+        category,
+        date,
+        excerpt,
+        description
+    }`);
+    
+    isLoading = false;
+} catch (e) {
+    console.error('Error fetching portfolio items:', e);
+    error = "Failed to load portfolio items. Please try again later.";
+    isLoading = false;
+}
+
+const pageTitle = "Portfolio";
+const metaDescription = "Explore our diverse portfolio of creative works across various categories.";
 ---
 
-<Layout title="Portfolio">
-    <div class="container mx-auto px-4 py-8">
-        <PortfolioGrid items={transformedItems} />
-        <nav class="mt-8">
-            <ul class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {
-                    portfolioCategories.map((category) => (
-                        <li>
-                            <a href={`/portfolio/${category.slug}`} class="block p-4 bg-gray-100 hover:bg-gray-200 rounded">
-                                {category.title}
-                            </a>
-                        </li>
-                    ))
-                }
-            </ul>
-        </nav>
-    </div>
+<Layout title={pageTitle} description={metaDescription}>
+    <main class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-6">Portfolio</h1>
+
+        {isLoading && <p class="text-center">Loading...</p>}
+
+        {error && <p class="text-red-500">{error}</p>}
+
+        {!isLoading && !error && portfolioItems.length === 0 && (
+            <p>No portfolio items found.</p>
+        )}
+
+        {!isLoading && portfolioItems.length > 0 && (
+            <>
+                <PortfolioGrid items={portfolioItems} />
+
+                <!-- Category filter buttons -->
+                <div class="mb-8 mt-8">
+                    <button class="filter-btn active" data-category="all">All</button>
+                    {portfolioCategories.map((category) => (
+                        <button class="filter-btn" data-category={category.slug}>
+                            {category.title}
+                        </button>
+                    ))}
+                </div>
+
+                <!-- Category Filter Links -->
+                <CategoryFilterLinks />
+            </>
+        )}
+    </main>
+
+    <script>
+        // Client-side filtering logic
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const portfolioItems = document.querySelectorAll('.portfolio-item') as NodeListOf<HTMLElement>;
+
+        filterButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                const category = button.getAttribute('data-category');
+
+                filterButtons.forEach((btn) => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                portfolioItems.forEach((item) => {
+                    if (category === 'all' || item.getAttribute('data-category') === category) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+
+    <style>
+        .filter-btn {
+            margin-right: 10px;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: transparent;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .filter-btn.active {
+            background-color: #fff;
+            color: #355c7d;
+        }
+    </style>
 </Layout>

@@ -1,26 +1,56 @@
 ---
-import client, { urlFor } from '../../lib/sanityClient';
 import Layout from '../../layouts/Layout.astro';
-import PageHeader from '../../components/Header.astro';
 import TimelineDisplay from '../../components/TimelineDisplay.astro';
+import CategoryFilterLinks from '../../components/CategoryFilterLinks.astro';
+import client from '../../lib/sanityClient';
+import type { PortfolioItem } from '../../types/portfolio-types';
 
 // Adjust the category name for each page
 const category = 'Editorial';
 
-const timelineItems = await client.fetch(
-    `*[_type == "portfolio" && category == $category]{
-  title, date, description, externalLink
-} | order(date desc)`,
-    { category }
-);
+let timelineItems: PortfolioItem[] = [];
+let error: string | null = null;
 
-const description = await client.fetch(`*[_type == "category" && name == $category][0].description`, { category });
+try {
+    // Fetch timeline items for the specific category
+    timelineItems = await client.fetch<PortfolioItem[]>(
+        `*[_type == "portfolio" && category == $category]{
+            _id,
+            title, 
+            date, 
+            description, 
+            externalLink,
+            "slug": slug.current,
+            "image": mainImage.asset->url,
+            category,
+            excerpt
+        } | order(date desc)`,
+        { category }
+    );
+} catch (e) {
+    console.error(e);
+    error = 'Failed to load editorial items. Please try again later.';
+}
+
+// Description for the category
+const description = 'Explore our editorial projects that showcase creativity and insight.';
+const pageTitle = `${category} - Portfolio`;
+const metaDescription = `Discover our ${category.toLowerCase()} projects highlighting creative and insightful editorial work.`;
 ---
 
-<Layout title={`${category} - Portfolio`}>
-    <PageHeader title={category} />
-    <div class="container mx-auto px-4 py-8">
+<Layout title={pageTitle} description={metaDescription}>
+    <main class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-4">{category}</h1>
         {description && <p class="mb-8">{description}</p>}
-        <TimelineDisplay items={timelineItems} />
-    </div>
+
+        <!-- Category Filter Links -->
+        <CategoryFilterLinks />
+
+        {error && <p class="text-red-500">{error}</p>}
+
+        {!error && timelineItems.length === 0 && <p>No editorial items found.</p>}
+
+        <!-- Timeline Display -->
+        {timelineItems.length > 0 && <TimelineDisplay items={timelineItems} />}
+    </main>
 </Layout>

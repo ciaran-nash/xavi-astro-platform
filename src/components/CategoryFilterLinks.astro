@@ -1,0 +1,26 @@
+---
+// src/components/CategoryFilterLinks.astro
+
+const categories = [
+    { name: 'Performance Work', link: '/portfolio/performance-work' },
+    { name: 'Pottery / Clay Work', link: '/portfolio/pottery' },
+    { name: 'Curation', link: '/portfolio/curation' },
+    { name: 'Editorial', link: '/portfolio/editorial' },
+    { name: 'Published Writing', link: '/portfolio/published-writing' },
+    { name: 'Cultural Production', link: '/portfolio/cultural-production' }
+];
+---
+
+<nav class="mt-8">
+    <ul class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {
+            categories.map((category) => (
+                <li>
+                    <a href={category.link} class="block border border-gray-300 hover:text-black hover:bg-gray-200 rounded px-4 py-2">
+                        {category.name}
+                    </a>
+                </li>
+            ))
+        }
+    </ul>
+</nav>

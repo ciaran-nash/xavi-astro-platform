@@ -1,19 +1,54 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import Grid from '../../components/GridDisplay.astro';
-import Timeline from '../../components/TimelineDisplay.astro';
+import PortfolioGrid from '../../components/PortfolioGrid.astro';
+import CategoryFilterLinks from '../../components/CategoryFilterLinks.astro';
+import client from '../../lib/sanityClient';
+import type { PortfolioItem } from '../../types/portfolio-types';
 
-// Fetch or import data for this category
-const projects = [
-    { title: 'Project 1', image: '/images/project1.jpg', description: 'Description 1' }
-    // Add more projects
-];
+const category = 'Cultural Production';
+let portfolioItems: PortfolioItem[] = [];
+let description: string | null = null;
+let error: string | null = null;
+
+try {
+    // Fetch portfolio items for the specific category
+    portfolioItems = await client.fetch<PortfolioItem[]>(
+        `*[_type == "portfolio" && category == $category]{
+            _id,
+            title, 
+            "slug": slug.current, 
+            "image": mainImage.asset->url,
+            category,
+            date,
+            excerpt
+        }`,
+        { category }
+    );
+
+    // Fetch description for the category
+    description = await client.fetch(`*[_type == "category" && name == $category][0].description`, { category });
+} catch (e) {
+    console.error(e);
+    error = 'Failed to load portfolio items. Please try again later.';
+}
+
+const pageTitle = `${category} - Portfolio`;
+const metaDescription = `Explore our ${category.toLowerCase()} portfolio showcasing creativity and innovation in cultural projects.`;
 ---
 
-<Layout title="Cultural Production">
-    <main>
-        <h1>Cultural Production</h1>
-        <p>Short text about cultural production work.</p>
-        <Grid items={projects} />
+<Layout title={pageTitle} description={metaDescription}>
+    <main class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-4">{category}</h1>
+        {description && <p class="mb-8">{description}</p>}
+
+        <!-- Category Filter Links -->
+        <CategoryFilterLinks />
+
+        {error && <p class="text-red-500">{error}</p>}
+
+        {!error && portfolioItems.length === 0 && <p>No portfolio items found for this category.</p>}
+
+        <!-- Portfolio Grid Display -->
+        {portfolioItems.length > 0 && <PortfolioGrid items={portfolioItems} />}
     </main>
 </Layout>
